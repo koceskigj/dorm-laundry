@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'features/achievements/achievements_screen.dart';
 import 'features/booking/booking_screen.dart';
 import 'features/notifications/ui/notifications_screen.dart';
-import 'features/rewards/ui/rewards_screen.dart';
+
 import 'features/history/ui/history_screen.dart';
 
 class AppShell extends StatefulWidget {
@@ -18,7 +19,7 @@ class _AppShellState extends State<AppShell> {
   final _pages = const [
     BookingScreen(),
     NotificationsScreen(),
-    RewardsScreen(),
+    AchievementsScreen(),
     HistoryScreen(),
   ];
 

@@ -10,11 +10,12 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const ProviderScope(child: GoceLaundryApp()));
+
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class GoceLaundryApp extends ConsumerWidget {
-  const GoceLaundryApp({super.key});
+class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,11 +23,7 @@ class GoceLaundryApp extends ConsumerWidget {
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'Goce Laundry',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        useMaterial3: true,
-      ),
+      title: 'Dorm Laundry',
       routerConfig: router,
     );
   }
