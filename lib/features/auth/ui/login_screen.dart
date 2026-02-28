@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/firebase_providers.dart';
 
@@ -29,7 +30,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         email: _email.text.trim(),
         password: _pass.text,
       );
-    } on Exception catch (e) {
+      // router redirect will handle navigation
+    } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Login failed: $e')),
@@ -68,7 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             const SizedBox(height: 8),
             TextButton(
-              onPressed: () => Navigator.of(context).pushNamed('/register'),
+              onPressed: () => context.go('/register'),
               child: const Text('Create account'),
             ),
           ],

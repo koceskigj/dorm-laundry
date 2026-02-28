@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'features/bookings/ui/booking_screen.dart';
+import 'features/booking/booking_screen.dart';
 import 'features/notifications/ui/notifications_screen.dart';
 import 'features/rewards/ui/rewards_screen.dart';
 import 'features/history/ui/history_screen.dart';

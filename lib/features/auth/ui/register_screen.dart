@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -26,13 +27,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _register() async {
     setState(() => _loading = true);
     try {
-      await ref.read(firebaseAuthProvider).createUserWithEmailAndPassword(
+      final auth = ref.read(firebaseAuthProvider);
+      final db = ref.read(firestoreProvider);
+
+      final cred = await auth.createUserWithEmailAndPassword(
         email: _email.text.trim(),
         password: _pass.text,
       );
+
+      final user = cred.user;
+      if (user == null) throw Exception('No user returned by Firebase Auth.');
+
+      // Create user profile doc
+      await db.collection('users').doc(user.uid).set({
+        'role': 'student',
+        'email': user.email,
+        'displayName': '',
+        'pointsBalance': 0,
+        'createdAt': FieldValue.serverTimestamp(),
+        'lastMonthlyTopUpAt': null,
+      });
+
       if (!mounted) return;
-      context.go('/');
-    } on Exception catch (e) {
+      context.go('/'); // redirect will also do this, but ok
+    } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Register failed: $e')),

@@ -1,14 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:async';
+
 import 'core/firebase_providers.dart';
 import 'app_shell.dart';
-
 import 'features/auth/ui/login_screen.dart';
 import 'features/auth/ui/register_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
+  // keep router in sync with auth state
   final authAsync = ref.watch(authStateChangesProvider);
 
   return GoRouter(
@@ -17,17 +19,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ref.read(authStateChangesProvider.stream),
     ),
     redirect: (context, state) {
-      final isLoggingIn = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/register';
+      final location = state.matchedLocation;
+      final isAuthRoute = location == '/login' || location == '/register';
 
       final user = authAsync.asData?.value;
 
       if (user == null) {
-        return isLoggingIn ? null : '/login';
+        return isAuthRoute ? null : '/login';
       }
 
-      // user is logged in
-      if (isLoggingIn) return '/';
+      // user logged in
+      if (isAuthRoute) return '/';
       return null;
     },
     routes: [
@@ -47,11 +49,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
-/// Helper: GoRouter doesn't include this by default.
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
     _sub = stream.asBroadcastStream().listen((_) => notifyListeners());
   }
+
   late final StreamSubscription<dynamic> _sub;
 
   @override

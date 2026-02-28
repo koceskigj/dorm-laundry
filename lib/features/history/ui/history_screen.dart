@@ -1,3 +1,4 @@
+import 'package:dorm_laundry_app/core/widgets/branded_app_bar.dart';
 import 'package:flutter/material.dart';
 
 class HistoryScreen extends StatelessWidget {
@@ -6,7 +7,7 @@ class HistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('History')),
+      appBar: const BrandedAppBar(),
       body: const Center(child: Text('Booking history coming next')),
     );
   }
