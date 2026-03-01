@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,7 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'core/firebase_providers.dart';
 import 'app_shell.dart';
 import 'features/auth/login_screen.dart';
-import 'features/admin/admin_home_screen.dart';
+import 'features/auth/gate_screen.dart';
+import 'features/admin/admin_shell.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authAsync = ref.watch(authStateChangesProvider);
@@ -19,45 +18,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: GoRouterRefreshStream(
       ref.read(authStateChangesProvider.stream),
     ),
-    redirect: (context, state) async {
-      final location = state.matchedLocation;
+    redirect: (context, state) {
+      final loc = state.matchedLocation;
+      final isLogin = loc == '/login';
+      final isGate = loc == '/gate';
+
+      if (authAsync.isLoading) return null;
+
       final user = authAsync.asData?.value;
 
-      final isLoginRoute = location == '/login';
-      final isAdminRoute = location == '/admin';
-      final isStudentRoute = location == '/';
-
-      // Not logged in
       if (user == null) {
-        return isLoginRoute ? null : '/login';
+        return isLogin ? null : '/login';
       }
 
-      // Logged in → fetch role
-      final db = ref.read(firestoreProvider);
-      final doc = await db.collection('users').doc(user.uid).get();
+      // logged in: if on login, go gate (gate decides admin/student)
+      if (isLogin) return '/gate';
 
-      if (!doc.exists) {
-        await FirebaseAuth.instance.signOut();
-        return '/login';
-      }
-
-      final data = doc.data()!;
-      final role = (data['role'] ?? '') as String;
-      final status = (data['status'] ?? 'active') as String;
-
-      if (status != 'active') {
-        await FirebaseAuth.instance.signOut();
-        return '/login';
-      }
-
-      // If on login page after login → redirect properly
-      if (isLoginRoute) {
-        return role == 'admin' ? '/admin' : '/';
-      }
-
-      // Prevent role crossing
-      if (role == 'admin' && isStudentRoute) return '/admin';
-      if (role == 'student' && isAdminRoute) return '/';
+      // allow gate to run
+      if (isGate) return null;
 
       return null;
     },
@@ -67,8 +45,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
+        path: '/gate',
+        builder: (context, state) => const GateScreen(),
+      ),
+      GoRoute(
         path: '/admin',
-        builder: (context, state) => const AdminHomeScreen(),
+        builder: (context, state) => const AdminShell(),
       ),
       GoRoute(
         path: '/',
