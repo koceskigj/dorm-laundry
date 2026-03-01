@@ -54,11 +54,15 @@ class GiftFriendCard extends ConsumerWidget {
                 final email = emailCtrl.text.trim().toLowerCase();
                 final amount = int.tryParse(amountCtrl.text.trim()) ?? -1;
 
-                // Local check: balance
-                final myBalance = ref.read(goceBalanceProvider);
+                if (email.isEmpty || !email.contains('@')) {
+                  throw Exception('Enter a valid email.');
+                }
                 if (amount <= 0) {
                   throw Exception('Enter a valid amount.');
                 }
+
+                // ✅ Read the live balance from our unified provider
+                final myBalance = ref.read(pointsBalanceProvider);
                 if (amount > myBalance) {
                   throw Exception('Not enough Goce coins.');
                 }
@@ -126,7 +130,10 @@ class GiftFriendCard extends ConsumerWidget {
                   onPressed: loading ? null : submit,
                   child: loading
                       ? const SizedBox(
-                      width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                       : const Text('Send'),
                 ),
               ],
