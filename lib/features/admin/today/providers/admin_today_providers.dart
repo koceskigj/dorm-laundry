@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/firebase_providers.dart';
 import '../models/admin_booking.dart';
 
-final adminSelectedDayProvider = StateProvider<DateTime>((ref) {
+final adminSelectedDayProvider = StateProvider.autoDispose<DateTime>((ref) {
   final now = DateTime.now();
   return DateTime(now.year, now.month, now.day);
 });

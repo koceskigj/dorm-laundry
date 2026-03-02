@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/admin/today/providers/admin_today_providers.dart';
 import '../firebase_providers.dart';
 
 /// Stream that keeps the current user's points live.
@@ -45,7 +46,13 @@ class BrandedAppBar extends ConsumerWidget implements PreferredSizeWidget {
         IconButton(
           tooltip: 'Logout',
           icon: const Icon(Icons.logout),
-          onPressed: () => ref.read(firebaseAuthProvider).signOut(),
+          onPressed: () async {
+            // reset admin state (safe even if user is student)
+            ref.invalidate(adminSelectedDayProvider);
+            ref.invalidate(adminBookingsForDayProvider);
+
+            await ref.read(firebaseAuthProvider).signOut();
+          },
         ),
         const SizedBox(width: 6),
       ],
