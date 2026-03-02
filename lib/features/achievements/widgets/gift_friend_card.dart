@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,6 +6,15 @@ import '../providers/achievements_providers.dart';
 
 class GiftFriendCard extends ConsumerWidget {
   const GiftFriendCard({super.key});
+
+  String _prettyError(Object e) {
+    if (e is FirebaseException) {
+      final msg = e.message ?? 'Unknown Firebase error';
+      return '${e.code}: $msg';
+    }
+    // Web sometimes wraps errors strangely; still show raw.
+    return e.toString().replaceFirst('Exception: ', '');
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,14 +48,17 @@ class GiftFriendCard extends ConsumerWidget {
     String? errorText;
     bool loading = false;
 
+    // We use your user doc to get your own email for "send to self" check.
+    final myEmail = ref.read(myEmailProvider).valueOrNull ?? '';
+
     await showDialog<void>(
       context: context,
       barrierDismissible: !loading,
       builder: (context) {
         return StatefulBuilder(
-          builder: (context, setState) {
+          builder: (context, setModalState) {
             Future<void> submit() async {
-              setState(() {
+              setModalState(() {
                 errorText = null;
                 loading = true;
               });
@@ -57,11 +70,13 @@ class GiftFriendCard extends ConsumerWidget {
                 if (email.isEmpty || !email.contains('@')) {
                   throw Exception('Enter a valid email.');
                 }
+                if (myEmail.isNotEmpty && email == myEmail.toLowerCase()) {
+                  throw Exception('You cannot gift coins to yourself.');
+                }
                 if (amount <= 0) {
                   throw Exception('Enter a valid amount.');
                 }
 
-                // ✅ Read the live balance from our unified provider
                 final myBalance = ref.read(pointsBalanceProvider);
                 if (amount > myBalance) {
                   throw Exception('Not enough Goce coins.');
@@ -72,14 +87,15 @@ class GiftFriendCard extends ConsumerWidget {
                   amount: amount,
                 );
 
-                if (context.mounted) Navigator.pop(context);
+                if (!context.mounted) return;
+                Navigator.pop(context);
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Gift sent: $amount Goce Coins')),
                 );
               } catch (e) {
-                setState(() {
-                  errorText = e.toString().replaceFirst('Exception: ', '');
+                setModalState(() {
+                  errorText = _prettyError(e);
                   loading = false;
                 });
               }

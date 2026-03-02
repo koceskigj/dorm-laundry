@@ -21,7 +21,7 @@ StreamProvider.autoDispose<DocumentSnapshot<Map<String, dynamic>>>((ref) {
   return db.collection('users').doc(uid).snapshots();
 });
 
-/// Derived: balance (use the SAME field everywhere)
+/// Derived: balance (use SAME field everywhere: pointsBalance)
 final pointsBalanceProvider = Provider<int>((ref) {
   final snap = ref.watch(userDocProvider).valueOrNull;
   final data = snap?.data();
@@ -68,9 +68,19 @@ StreamProvider.autoDispose<Map<String, Timestamp>>((ref) {
   });
 });
 
+/// ✅ UNSAFE version: direct Firestore transfer
 final coinTransferServiceProvider = Provider<CoinTransferService>((ref) {
   return CoinTransferService(
     ref.watch(firestoreProvider),
     ref.watch(firebaseAuthProvider),
   );
+});
+
+final myEmailProvider = Provider<AsyncValue<String>>((ref) {
+  final snapAsync = ref.watch(userDocProvider);
+  return snapAsync.whenData((snap) {
+    final data = snap.data() ?? <String, dynamic>{};
+    final email = (data['email'] ?? '') as String;
+    return email.toLowerCase();
+  });
 });
