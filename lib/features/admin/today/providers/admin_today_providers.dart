@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -15,7 +17,13 @@ final adminDayKeyProvider = Provider<String>((ref) {
   return DateFormat('yyyy-MM-dd').format(day);
 });
 
-final adminBookingsForDayProvider = StreamProvider<List<AdminBooking>>((ref) {
+
+final adminBookingsForDayProvider =
+StreamProvider.autoDispose<List<AdminBooking>>((ref) {
+  final authAsync = ref.watch(authStateChangesProvider);
+  final user = authAsync.asData?.value;
+  if (user == null) return const Stream.empty();
+
   final db = ref.watch(firestoreProvider);
   final dayKey = ref.watch(adminDayKeyProvider);
 
@@ -27,18 +35,23 @@ final adminBookingsForDayProvider = StreamProvider<List<AdminBooking>>((ref) {
       .map((q) => q.docs.map((d) => AdminBooking.fromDoc(d)).toList());
 });
 
-/// Live single booking doc by id (details screen).
-final adminBookingDocProvider =
-StreamProvider.family<DocumentSnapshot<Map<String, dynamic>>, String>(
-        (ref, bookingId) {
-      final db = ref.watch(firestoreProvider);
-      return db.collection('bookings').doc(bookingId).snapshots();
-    });
+final adminBookingDocProvider = StreamProvider.autoDispose
+    .family<DocumentSnapshot<Map<String, dynamic>>, String>((ref, bookingId) {
+  final authAsync = ref.watch(authStateChangesProvider);
+  final user = authAsync.asData?.value;
+  if (user == null) return const Stream.empty();
 
-/// Live user doc by uid (for coin balance preview in details sheet).
-final adminUserDocProvider =
-StreamProvider.family<DocumentSnapshot<Map<String, dynamic>>, String>(
-        (ref, uid) {
-      final db = ref.watch(firestoreProvider);
-      return db.collection('users').doc(uid).snapshots();
-    });
+  final db = ref.watch(firestoreProvider);
+  return db.collection('bookings').doc(bookingId).snapshots();
+});
+
+
+final adminUserDocProvider = StreamProvider.autoDispose
+    .family<DocumentSnapshot<Map<String, dynamic>>, String>((ref, uid) {
+  final authAsync = ref.watch(authStateChangesProvider);
+  final user = authAsync.asData?.value;
+  if (user == null) return const Stream.empty();
+
+  final db = ref.watch(firestoreProvider);
+  return db.collection('users').doc(uid).snapshots();
+});

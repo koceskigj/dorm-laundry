@@ -2,16 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/firebase_providers.dart';
+import '../../notifications/providers/notification_providers.dart';
 import '../models/achievement.dart';
 import '../services/coin_transfer_service.dart';
 
-/// Current UID (stable): derived from authStateChangesProvider
-final currentUidProvider = Provider<String?>((ref) {
-  final authAsync = ref.watch(authStateChangesProvider);
-  return authAsync.asData?.value?.uid;
-});
 
-/// Stream: current user's Firestore doc
+
 final userDocProvider =
 StreamProvider.autoDispose<DocumentSnapshot<Map<String, dynamic>>>((ref) {
   final uid = ref.watch(currentUidProvider);
@@ -21,7 +17,6 @@ StreamProvider.autoDispose<DocumentSnapshot<Map<String, dynamic>>>((ref) {
   return db.collection('users').doc(uid).snapshots();
 });
 
-/// Derived: balance (use SAME field everywhere: pointsBalance)
 final pointsBalanceProvider = Provider<int>((ref) {
   final snap = ref.watch(userDocProvider).valueOrNull;
   final data = snap?.data();
@@ -29,7 +24,6 @@ final pointsBalanceProvider = Provider<int>((ref) {
   return (v as num).toInt();
 });
 
-/// Global catalog of achievements
 final achievementsCatalogProvider =
 StreamProvider.autoDispose<List<Achievement>>((ref) {
   final db = ref.watch(firestoreProvider);
@@ -41,7 +35,6 @@ StreamProvider.autoDispose<List<Achievement>>((ref) {
       .map((q) => q.docs.map((d) => Achievement.fromDoc(d)).toList());
 });
 
-/// Map of unlocked achievements for current user: {achievementId -> unlockedAt}
 final unlockedAchievementsProvider =
 StreamProvider.autoDispose<Map<String, Timestamp>>((ref) {
   final uid = ref.watch(currentUidProvider);
@@ -68,7 +61,7 @@ StreamProvider.autoDispose<Map<String, Timestamp>>((ref) {
   });
 });
 
-/// ✅ UNSAFE version: direct Firestore transfer
+/// ✅ UNSAFE version: direct Firestore transfer (you said keep it)
 final coinTransferServiceProvider = Provider<CoinTransferService>((ref) {
   return CoinTransferService(
     ref.watch(firestoreProvider),
@@ -84,3 +77,69 @@ final myEmailProvider = Provider<AsyncValue<String>>((ref) {
     return email.toLowerCase();
   });
 });
+
+/// --------------------
+/// Achievement popup inbox
+/// --------------------
+
+class AchievementInboxItem {
+  final String id; // inbox doc id
+  final String achievementId;
+  final String title;
+  final int rewardCoins;
+
+  AchievementInboxItem({
+    required this.id,
+    required this.achievementId,
+    required this.title,
+    required this.rewardCoins,
+  });
+
+  factory AchievementInboxItem.fromDoc(
+      DocumentSnapshot<Map<String, dynamic>> doc,
+      ) {
+    final d = doc.data() ?? {};
+    return AchievementInboxItem(
+      id: doc.id,
+      achievementId: (d['achievementId'] ?? '') as String,
+      title: (d['title'] ?? '') as String,
+      rewardCoins: ((d['rewardCoins'] ?? 0) as num).toInt(),
+    );
+  }
+}
+
+/// Stream the newest unread "achievement_unlocked" inbox event (or null).
+/// IMPORTANT: no orderBy -> avoids needing a composite index.
+final unreadAchievementPopupProvider =
+StreamProvider.autoDispose<AchievementInboxItem?>((ref) {
+  final uid = ref.watch(currentUidProvider);
+  if (uid == null) return const Stream.empty();
+
+  final db = ref.watch(firestoreProvider);
+
+  return db
+      .collection('users')
+      .doc(uid)
+      .collection('inbox')
+      .where('type', isEqualTo: 'achievement_unlocked')
+      .where('read', isEqualTo: false)
+      .limit(1)
+      .snapshots()
+      .map((q) {
+    if (q.docs.isEmpty) return null;
+    return AchievementInboxItem.fromDoc(q.docs.first);
+  });
+});
+
+Future<void> markAchievementInboxRead({
+  required FirebaseFirestore db,
+  required String uid,
+  required String inboxId,
+}) {
+  return db
+      .collection('users')
+      .doc(uid)
+      .collection('inbox')
+      .doc(inboxId)
+      .update({'read': true});
+}

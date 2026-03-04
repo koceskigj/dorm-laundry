@@ -55,8 +55,10 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Student: ${b.studentName}',
-                            style: const TextStyle(fontWeight: FontWeight.w900)),
+                        Text(
+                          'Student: ${b.studentName}',
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
                         const SizedBox(height: 6),
                         Text('Student ID: ${b.studentId}'),
                         Text('Machine: ${b.machineNumber}'),
@@ -142,9 +144,13 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
         const SnackBar(content: Text('Suspended.')),
       );
       Navigator.pop(context);
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('Suspend error: $e');
+      debugPrint('$st');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -152,9 +158,6 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
 
   Future<void> _submitSheet(BuildContext context, AdminBooking b) async {
     String paidWith = 'coins';
-
-    // live balance preview
-    final userDocAsync = ref.read(adminUserDocProvider(b.userUid));
 
     final result = await showModalBottomSheet<bool>(
       context: context,
@@ -173,6 +176,8 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
 
             return StatefulBuilder(
               builder: (ctx, setModalState) {
+                final confirmDisabled = paidWith == 'coins' && !enoughCoins;
+
                 return Padding(
                   padding: const EdgeInsets.fromLTRB(16, 10, 16, 18),
                   child: Column(
@@ -185,7 +190,6 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text('Student balance: $balance coins'),
-
                       const SizedBox(height: 10),
 
                       RadioListTile<String>(
@@ -193,9 +197,8 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
                         groupValue: paidWith,
                         onChanged: (v) => setModalState(() => paidWith = v!),
                         title: const Text('Paid with Goce coins'),
-                        subtitle: enoughCoins
-                            ? null
-                            : const Text('Not enough coins (needs 50).'),
+                        subtitle:
+                        enoughCoins ? null : const Text('Not enough coins (needs 50).'),
                       ),
                       RadioListTile<String>(
                         value: 'cash',
@@ -216,11 +219,7 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: FilledButton(
-                              onPressed: () {
-                                // block confirm if coins selected and not enough
-                                if (paidWith == 'coins' && !enoughCoins) return;
-                                Navigator.pop(ctx, true);
-                              },
+                              onPressed: confirmDisabled ? null : () => Navigator.pop(ctx, true),
                               child: const Text('Confirm'),
                             ),
                           ),
@@ -253,11 +252,16 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
         const SnackBar(content: Text('Submitted.')),
       );
       Navigator.pop(context);
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('Submit error: $e');
+      debugPrint('$st');
+
       if (!mounted) return;
+
       final msg = e.toString().contains('NOT_ENOUGH_COINS')
           ? 'Not enough coins for this student.'
           : 'Error: $e';
+
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     } finally {
       if (mounted) setState(() => _busy = false);

@@ -1,14 +1,15 @@
-import 'package:dorm_laundry_app/features/notifications/providers/notification_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/firebase_providers.dart';
 import 'features/achievements/achievements_screen.dart';
 import 'features/booking/booking_screen.dart';
 import 'features/history/ui/history_screen.dart';
-
-
 import 'features/notifications/notifications_screen.dart';
+import 'features/notifications/providers/notification_providers.dart';
 
+// ✅ Alias to avoid name clashes like currentUidProvider
+import 'features/achievements/providers/achievements_providers.dart' as ach;
 
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
@@ -27,6 +28,56 @@ class _AppShellState extends ConsumerState<AppShell> {
     HistoryScreen(),
   ];
 
+  ProviderSubscription<AsyncValue<ach.AchievementInboxItem?>>? _achSub;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // ✅ Correct for initState: listenManual
+    _achSub = ref.listenManual<AsyncValue<ach.AchievementInboxItem?>>(
+      ach.unreadAchievementPopupProvider,
+          (prev, next) async {
+        final item = next.valueOrNull;
+        if (item == null) return;
+
+        if (!mounted) return;
+
+        // Show popup
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Congratulations!'),
+            content: Text(
+              'You’ve unlocked:\n\n'
+                  '${item.title}\n\n'
+                  'Reward: +${item.rewardCoins} Goce coins',
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Nice!'),
+              ),
+            ],
+          ),
+        );
+
+        // Mark inbox item as read
+        final uid = ref.read(firebaseAuthProvider).currentUser?.uid;
+        if (uid == null) return;
+
+        final db = ref.read(firestoreProvider);
+        await ach.markAchievementInboxRead(db: db, uid: uid, inboxId: item.id);
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _achSub?.close();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasUnreadAsync = ref.watch(hasUnreadNotificationsProvider);
@@ -44,7 +95,6 @@ class _AppShellState extends ConsumerState<AppShell> {
             icon: Icon(Icons.calendar_month),
             label: 'Book',
           ),
-
           NavigationDestination(
             icon: _DotIcon(
               showDot: showDot,
@@ -52,7 +102,6 @@ class _AppShellState extends ConsumerState<AppShell> {
             ),
             label: 'News',
           ),
-
           const NavigationDestination(
             icon: Icon(Icons.stars),
             label: 'Rewards',
