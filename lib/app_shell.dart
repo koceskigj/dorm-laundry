@@ -4,11 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/firebase_providers.dart';
 import 'features/achievements/achievements_screen.dart';
 import 'features/booking/booking_screen.dart';
-import 'features/history/ui/history_screen.dart';
+
+import 'features/history/history_screen.dart';
 import 'features/notifications/notifications_screen.dart';
 import 'features/notifications/providers/notification_providers.dart';
 
-// ✅ Alias to avoid name clashes like currentUidProvider
 import 'features/achievements/providers/achievements_providers.dart' as ach;
 
 class AppShell extends ConsumerStatefulWidget {
@@ -34,7 +34,6 @@ class _AppShellState extends ConsumerState<AppShell> {
   void initState() {
     super.initState();
 
-    // ✅ Correct for initState: listenManual
     _achSub = ref.listenManual<AsyncValue<ach.AchievementInboxItem?>>(
       ach.unreadAchievementPopupProvider,
           (prev, next) async {
