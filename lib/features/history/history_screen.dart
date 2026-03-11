@@ -68,17 +68,17 @@ class HistoryScreen extends ConsumerWidget {
 
                     if (isPenalty) {
                       title = 'PENALTY';
-                      bgColor = Colors.red.withOpacity(0.80);
+                      bgColor = Colors.red.withOpacity(0.70);
                       badgeColor = Colors.white;
                       badgeText = 'SUSPENDED';
                     } else if (paidWith == 'coins') {
                       title = 'Machine $machineNumber';
-                      bgColor = Colors.amber.withOpacity(0.80);
+                      bgColor = Colors.amber.withOpacity(0.70);
                       badgeColor = Colors.white;
                       badgeText = 'COINS';
                     } else {
                       title = 'Machine $machineNumber';
-                      bgColor = Colors.green.withOpacity(0.80);
+                      bgColor = Colors.green.withOpacity(0.70);
                       badgeColor = Colors.white;
                       badgeText = 'CASH';
                     }

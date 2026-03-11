@@ -49,24 +49,29 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Student: ${b.studentName}',
-                          style: const TextStyle(fontWeight: FontWeight.w900),
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Student: ${b.studentName}',
+                              style: const TextStyle(fontWeight: FontWeight.w900),
+                            ),
+                            const SizedBox(height: 6),
+                            Text('Student ID: ${b.studentId}'),
+                            Text('Machine: ${b.machineNumber}'),
+                            Text('Time: $when'),
+                            const SizedBox(height: 8),
+                            Text('Status: ${b.status}'),
+                            if (b.paidWith != null) Text('Paid with: ${b.paidWith}'),
+                          ],
                         ),
-                        const SizedBox(height: 6),
-                        Text('Student ID: ${b.studentId}'),
-                        Text('Machine: ${b.machineNumber}'),
-                        Text('Time: $when'),
-                        const SizedBox(height: 8),
-                        Text('Status: ${b.status}'),
-                        if (b.paidWith != null) Text('Paid with: ${b.paidWith}'),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -75,9 +80,12 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
                 if (!isActionable)
                   const Padding(
                     padding: EdgeInsets.only(bottom: 12),
-                    child: Text(
-                      'This booking is already processed.',
-                      style: TextStyle(fontWeight: FontWeight.w800),
+                    child: Center(
+                      child: Text(
+                        'This booking is already processed.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
                     ),
                   ),
 

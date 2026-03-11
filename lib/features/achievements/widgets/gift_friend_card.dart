@@ -12,7 +12,6 @@ class GiftFriendCard extends ConsumerWidget {
       final msg = e.message ?? 'Unknown Firebase error';
       return '${e.code}: $msg';
     }
-    // Web sometimes wraps errors strangely; still show raw.
     return e.toString().replaceFirst('Exception: ', '');
   }
 
@@ -43,20 +42,21 @@ class GiftFriendCard extends ConsumerWidget {
   }
 
   Future<void> _openGiftDialog(BuildContext context, WidgetRef ref) async {
+    final parentContext = context;
+
     final emailCtrl = TextEditingController();
     final amountCtrl = TextEditingController();
     String? errorText;
     bool loading = false;
 
-    // We use your user doc to get your own email for "send to self" check.
     final myEmail = ref.read(myEmailProvider).valueOrNull ?? '';
 
     await showDialog<void>(
-      context: context,
+      context: parentContext,
       barrierDismissible: !loading,
-      builder: (context) {
+      builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (context, setModalState) {
+          builder: (dialogContext, setModalState) {
             Future<void> submit() async {
               setModalState(() {
                 errorText = null;
@@ -87,13 +87,15 @@ class GiftFriendCard extends ConsumerWidget {
                   amount: amount,
                 );
 
-                if (!context.mounted) return;
-                Navigator.pop(context);
+                if (!dialogContext.mounted) return;
+                Navigator.of(dialogContext).pop();
 
-                ScaffoldMessenger.of(context).showSnackBar(
+                if (!parentContext.mounted) return;
+                ScaffoldMessenger.of(parentContext).showSnackBar(
                   SnackBar(content: Text('Gift sent: $amount Goce Coins')),
                 );
               } catch (e) {
+                if (!dialogContext.mounted) return;
                 setModalState(() {
                   errorText = _prettyError(e);
                   loading = false;
@@ -131,7 +133,7 @@ class GiftFriendCard extends ConsumerWidget {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         errorText!,
-                        style: TextStyle(color: Theme.of(context).colorScheme.error),
+                        style: TextStyle(color: Theme.of(dialogContext).colorScheme.error),
                       ),
                     ),
                   ],
@@ -139,7 +141,7 @@ class GiftFriendCard extends ConsumerWidget {
               ),
               actions: [
                 TextButton(
-                  onPressed: loading ? null : () => Navigator.pop(context),
+                  onPressed: loading ? null : () => Navigator.of(dialogContext).pop(),
                   child: const Text('Cancel'),
                 ),
                 FilledButton(

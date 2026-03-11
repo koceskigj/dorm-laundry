@@ -112,18 +112,18 @@ class AdminStudentDetailsScreen extends ConsumerWidget {
 
                   if (isPenalty) {
                     title = 'PENALTY';
-                    bgColor = Colors.red.withOpacity(0.08);
-                    badgeColor = Colors.red;
+                    bgColor = Colors.red.withOpacity(0.70);
+                    badgeColor = Colors.white;
                     badgeText = 'SUSPENDED';
                   } else if (paidWith == 'coins') {
                     title = 'Machine $machineNumber';
-                    bgColor = Colors.amber.withOpacity(0.10);
-                    badgeColor = Colors.amber[800]!;
+                    bgColor = Colors.amber.withOpacity(0.70);
+                    badgeColor = Colors.white;
                     badgeText = 'COINS';
                   } else {
                     title = 'Machine $machineNumber';
-                    bgColor = Colors.green.withOpacity(0.10);
-                    badgeColor = Colors.green[800]!;
+                    bgColor = Colors.green.withOpacity(0.70);
+                    badgeColor = Colors.white;
                     badgeText = 'CASH';
                   }
 
@@ -184,7 +184,7 @@ class AdminStudentDetailsScreen extends ConsumerWidget {
                                   style: Theme.of(context)
                                       .textTheme
                                       .bodySmall
-                                      ?.copyWith(color: Colors.grey[700]),
+                                      ?.copyWith(color: Colors.black),
                                 ),
                               ),
                           ],
