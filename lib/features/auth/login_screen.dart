@@ -87,17 +87,16 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(Icons.lock_outline,
-                      size: 60, color: Theme.of(context).colorScheme.primary),
-                  const SizedBox(height: 14),
-                  const Text(
-                    'Login',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+                  Center(
+                    child: Image.asset(
+                      'assets/images/login_logo.jpg',
+                      height: 280,
+                      fit: BoxFit.contain,
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 18),
                   Text(
-                    'Accounts are provided by dorm staff.',
+                    'Welcome to the Laundry System Applictaion.',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey[700]),
                   ),
