@@ -20,13 +20,14 @@ class ActiveBookingCard extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(14),
-        child: Row(
+        child: b == null
+            ? const Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(b == null ? Icons.event_available : Icons.event, size: 26),
-            const SizedBox(width: 12),
+            Icon(Icons.event_available, size: 26),
+            SizedBox(width: 12),
             Expanded(
-              child: b == null
-                  ? const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -36,29 +37,46 @@ class ActiveBookingCard extends StatelessWidget {
                   SizedBox(height: 4),
                   Text('Pick a day, pick a machine, and reserve a slot.'),
                 ],
-              )
-                  : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Your active booking',
-                    style: TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${DateFormat('EEE, MMM d').format(b.start)} • ${DateFormat('HH:mm').format(b.start)}',
-                  ),
-                  Text(b.machineId,
-                      style: TextStyle(color: Colors.grey[700])),
-                ],
               ),
             ),
-            const SizedBox(width: 10),
-            if (b != null)
-              OutlinedButton(
+          ],
+        )
+            : Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.event, size: 26),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Your active booking',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${DateFormat('EEE, MMM d').format(b.start)} • ${DateFormat('HH:mm').format(b.start)}',
+                      ),
+                      Text(
+                        b.machineId,
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: OutlinedButton(
                 onPressed: onCancel,
                 child: const Text('Cancel'),
               ),
+            ),
           ],
         ),
       ),

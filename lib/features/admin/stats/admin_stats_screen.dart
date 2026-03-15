@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/branded_app_bar.dart';
-
 import 'widgets/stat_card.dart';
 
 class AdminStatsScreen extends ConsumerWidget {
@@ -36,7 +35,9 @@ class AdminStatsScreen extends ConsumerWidget {
                 crossAxisSpacing: 10,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 1.7,
+
+                childAspectRatio: 1.15,
+
                 children: [
                   StatCard(
                     title: 'Completed laundries',

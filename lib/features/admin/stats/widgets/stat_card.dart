@@ -16,34 +16,35 @@ class StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 2,
-      color: const Color(0xFFE6F2FF), // soft pale blue
+      color: const Color(0xFFE6F2FF),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
+      child: Container(
+        constraints: const BoxConstraints(
+          minHeight: 140,
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 18,
+        ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Spacer(),
 
-            /// Big centered number
-            Center(
-              child: Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w900,
-                ),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 34,
+                fontWeight: FontWeight.w900,
               ),
             ),
 
-            const Spacer(),
 
-            /// Bottom icon + label
             Column(
               children: [
                 Icon(icon, size: 22),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   title,
                   textAlign: TextAlign.center,

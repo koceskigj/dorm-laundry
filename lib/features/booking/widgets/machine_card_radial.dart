@@ -10,7 +10,6 @@ class MachineCardRadial extends StatelessWidget {
   final List<Slot> slots;
   final ValueChanged<Slot> onTapSlot;
 
-  // optional: colorize the card
   final Color? backgroundColor;
 
   const MachineCardRadial({
@@ -34,7 +33,7 @@ class MachineCardRadial extends StatelessWidget {
 
     return Card(
       elevation: 1.5,
-      color: backgroundColor, // e.g. light blue / silver
+      color: backgroundColor,
       surfaceTintColor: Colors.transparent,
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -48,7 +47,10 @@ class MachineCardRadial extends StatelessWidget {
                   child: Text(
                     headerText,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -69,10 +71,13 @@ class MachineCardRadial extends StatelessWidget {
                       builder: (context, c) {
                         final size = c.maxWidth;
 
-                        final circle = (size * 0.30).clamp(95.0, 170.0);
-                        final chipW = (size * 0.34).clamp(130.0, 210.0);
-                        final chipH = (size * 0.20).clamp(72.0, 72.0);
-                        final gap = (size * 0.05).clamp(14.0, 22.0);
+                        final circle = (size * 0.28).clamp(90.0, 155.0);
+
+                        final chipW = (size * 0.28).clamp(96.0, 125.0);
+
+                        final chipH = (size * 0.20).clamp(68.0, 76.0);
+
+                        final gap = (size * 0.035).clamp(10.0, 16.0);
 
                         final cx = size / 2;
                         final cy = size / 2;
@@ -92,6 +97,7 @@ class MachineCardRadial extends StatelessWidget {
                                 fill: Theme.of(context).colorScheme.surface,
                               ),
                             ),
+
                             Positioned(
                               left: cx - chipW / 2,
                               top: cy - r - gap - chipH,
@@ -99,6 +105,7 @@ class MachineCardRadial extends StatelessWidget {
                               height: chipH,
                               child: SlotChip(slot: top, onTap: onTapSlot),
                             ),
+
                             Positioned(
                               left: cx + r + gap,
                               top: cy - chipH / 2,
@@ -106,6 +113,7 @@ class MachineCardRadial extends StatelessWidget {
                               height: chipH,
                               child: SlotChip(slot: right, onTap: onTapSlot),
                             ),
+
                             Positioned(
                               left: cx - chipW / 2,
                               top: cy + r + gap,
@@ -113,6 +121,7 @@ class MachineCardRadial extends StatelessWidget {
                               height: chipH,
                               child: SlotChip(slot: bottom, onTap: onTapSlot),
                             ),
+
                             Positioned(
                               left: cx - r - gap - chipW,
                               top: cy - chipH / 2,

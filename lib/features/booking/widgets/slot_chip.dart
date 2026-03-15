@@ -40,16 +40,17 @@ class SlotChip extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         onTap: () => onTap(slot!),
         child: Ink(
           decoration: BoxDecoration(
             color: bg,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.black.withOpacity(0.12)),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -59,11 +60,17 @@ class SlotChip extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                       color: fg,
-                      fontSize: 16,
+                      fontSize: 14,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(sub, style: TextStyle(color: fg, fontSize: 12)),
+                  const SizedBox(height: 2),
+                  Text(
+                    sub,
+                    style: TextStyle(
+                      color: fg,
+                      fontSize: 10,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -82,13 +89,17 @@ class _EmptyChip extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.55),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.black.withOpacity(0.06)),
       ),
       child: Center(
         child: Text(
           '—',
-          style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w700),
+          style: TextStyle(
+            color: Colors.grey[700],
+            fontWeight: FontWeight.w700,
+            fontSize: 14,
+          ),
         ),
       ),
     );

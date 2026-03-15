@@ -41,11 +41,6 @@ class _LoginScreenState extends State<LoginScreen> {
         password: pass,
       );
 
-      // IMPORTANT:
-      // Do NOT navigate here.
-      // Your GoRouter redirect will send:
-      // admin -> /admin
-      // student -> /
     } on FirebaseAuthException catch (e) {
       setState(() => _error = e.message ?? e.code);
     } catch (e) {
