@@ -13,8 +13,8 @@ Before running the application, make sure you have the following installed:
 
 ## Clone the repository
  
-  - git clone https://github.com/koceskigj/dorm-laundry-app.git
-  - cd dorm-laundry-app
+  - git clone https://github.com/koceskigj/dorm-laundry.git
+  - cd dorm-laundry
 
  ## Install the dependencies
  
