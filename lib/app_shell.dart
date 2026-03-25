@@ -10,6 +10,7 @@ import 'features/notifications/notifications_screen.dart';
 import 'features/notifications/providers/notification_providers.dart';
 
 import 'features/achievements/providers/achievements_providers.dart' as ach;
+import 'features/partners/screens/partners_screen.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
@@ -26,6 +27,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     NotificationsScreen(),
     AchievementsScreen(),
     HistoryScreen(),
+    PartnersScreen(),
   ];
 
   ProviderSubscription<AsyncValue<ach.AchievementInboxItem?>>? _achSub;
@@ -108,6 +110,10 @@ class _AppShellState extends ConsumerState<AppShell> {
           const NavigationDestination(
             icon: Icon(Icons.history),
             label: 'History',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.apartment_rounded),
+            label: 'Partners',
           ),
         ],
       ),

@@ -3,6 +3,11 @@
         android:label="dorm_laundry_app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <meta-data
+                android:name="com.google.android.geo.API_KEY"
+                android:value="AIzaSyCFGUfqKei-XvnQANG0U_BX3nx4Pu3K5xA"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
