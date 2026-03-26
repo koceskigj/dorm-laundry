@@ -81,8 +81,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    final hasUnreadAsync = ref.watch(hasUnreadNotificationsProvider);
-    final hasUnread = hasUnreadAsync.valueOrNull ?? false;
+    final hasUnread = ref.watch(hasUnreadNotificationsProvider);
 
     final showDot = hasUnread && _index != 1; // hide dot while on News tab
 

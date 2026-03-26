@@ -1,27 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dorm_laundry_app/features/notifications/providers/notification_providers.dart';
+import 'package:dorm_laundry_app/core/widgets/branded_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
-import '../../core/firebase_providers.dart';
-import '../../core/widgets/branded_app_bar.dart';
+import 'providers/notification_providers.dart';
 
-
-class NotificationsScreen extends ConsumerStatefulWidget {
+class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
 
   @override
-  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
-}
-
-class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
-  // Local “instant UI” read state so the row changes color immediately on tap.
-  final Set<String> _locallyReadIds = {};
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final asyncSnap = ref.watch(notificationsQueryProvider);
-    final lastSeen = ref.watch(lastSeenNotificationsAtProvider);
+    final readIds = ref.watch(readNotificationIdsProvider).valueOrNull ?? <String>{};
 
     return Scaffold(
       appBar: const BrandedAppBar(),
@@ -43,55 +34,189 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
               final title = (data['title'] ?? '').toString();
               final body = (data['body'] ?? '').toString();
-
+              final imageUrl = (data['imageUrl'] ?? '').toString();
               final ts = data['createdAt'];
               final createdAt = ts is Timestamp ? ts.toDate() : null;
 
-              final wasTappedRead = _locallyReadIds.contains(doc.id);
-
-              final isUnreadServer = createdAt != null &&
-                  (lastSeen == null || createdAt.isAfter(lastSeen));
-
-              // unread if server says unread AND not already tapped
-              final isUnread = isUnreadServer && !wasTappedRead;
+              final unread = !readIds.contains(doc.id);
 
               return Card(
-                color: isUnread ? const Color(0xFFEAF4FF) : Colors.white,
-                child: ListTile(
-                  title: Text(
-                    title.isEmpty ? '(No title)' : title,
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                  subtitle: Text(
-                    body,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: createdAt == null
-                      ? null
-                      : Text(
-                    _prettyTime(createdAt),
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: Colors.grey[600]),
-                  ),
+                color: unread ? const Color(0xFFEAF4FF) : null,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
                   onTap: () async {
-                    // Show full notification
-                    await _openDetails(
-                      context,
-                      title: title,
-                      body: body,
-                      createdAt: createdAt,
+                    await markNotificationRead(ref, doc.id);
+
+                    if (!context.mounted) return;
+
+                    showDialog<void>(
+                      context: context,
+                      builder: (_) => Dialog(
+                        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min, // 👈 KEY (flexible height)
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                /// TITLE
+                                Text(
+                                  title.isEmpty ? '(No title)' : title,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 12),
+
+                                /// BODY
+                                Text(
+                                  body,
+                                  style: const TextStyle(fontSize: 15),
+                                ),
+
+                                /// IMAGE (controlled, not dialog)
+                                if (imageUrl.isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxHeight: MediaQuery.of(context).size.height * 0.35, // 👈 only limit image
+                                      ),
+                                      child: Image.network(
+                                        imageUrl,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Container(
+                                            height: 150,
+                                            alignment: Alignment.center,
+                                            color: Colors.grey.shade200,
+                                            child: const Text('Could not load image'),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ],
+
+                                /// DATE
+                                if (createdAt != null) ...[
+                                  const SizedBox(height: 12),
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Text(
+                                      DateFormat('EEE, MMM d • HH:mm').format(createdAt),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(color: Colors.grey[600]),
+                                    ),
+                                  ),
+                                ],
+
+                                const SizedBox(height: 14),
+
+                                /// BUTTON
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Close'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     );
-
-                    // Mark this one as read in UI immediately
-                    setState(() => _locallyReadIds.add(doc.id));
-
-                    // Advance lastSeenNotificationsAt so badge/unread logic updates.
-                    // Use createdAt (not serverTimestamp) so the logic is consistent.
-                    await _markSeenUpTo(createdAt);
                   },
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.notifications_outlined),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                title.isEmpty ? '(No title)' : title,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (unread)
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+
+                        /// short preview only
+                        Text(
+                          body,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.grey[800],
+                            height: 1.25,
+                          ),
+                        ),
+
+                        if (imageUrl.isNotEmpty) ...[
+                          const SizedBox(height: 10),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              imageUrl,
+                              width: double.infinity,
+                              height: 140,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  height: 140,
+                                  width: double.infinity,
+                                  alignment: Alignment.center,
+                                  color: Colors.grey.shade200,
+                                  child: const Text('Could not load image'),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 10),
+
+                        if (createdAt != null)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              DateFormat('EEE, MMM d • HH:mm').format(createdAt),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: Colors.grey[600]),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
               );
             },
@@ -99,78 +224,5 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         },
       ),
     );
-  }
-
-  Future<void> _markSeenUpTo(DateTime? createdAt) async {
-    final uid = ref.read(currentUidProvider);
-    if (uid == null) return;
-
-    // If createdAt missing (rare), fall back to now
-    final seenTime = createdAt ?? DateTime.now();
-
-    try {
-      final db = ref.read(firestoreProvider);
-
-      // We don't want to move lastSeen backwards by accident.
-      await db.runTransaction((tx) async {
-        final refUser = db.collection('users').doc(uid);
-        final snap = await tx.get(refUser);
-
-        final data = snap.data() ?? <String, dynamic>{};
-        final prev = data['lastSeenNotificationsAt'];
-
-        DateTime? prevDt;
-        if (prev is Timestamp) prevDt = prev.toDate();
-
-        if (prevDt == null || seenTime.isAfter(prevDt)) {
-          tx.update(refUser, {'lastSeenNotificationsAt': Timestamp.fromDate(seenTime)});
-        }
-      });
-    } catch (_) {
-      // ignore silently (offline/rules)
-    }
-  }
-
-  Future<void> _openDetails(
-      BuildContext context, {
-        required String title,
-        required String body,
-        required DateTime? createdAt,
-      }) {
-    return showDialog<void>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(title.isEmpty ? 'Notification' : title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (createdAt != null) ...[
-              Text(
-                _prettyTime(createdAt),
-                style: TextStyle(color: Colors.grey[700]),
-              ),
-              const SizedBox(height: 10),
-            ],
-            Text(body),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _prettyTime(DateTime dt) {
-    final y = dt.year.toString().padLeft(4, '0');
-    final m = dt.month.toString().padLeft(2, '0');
-    final d = dt.day.toString().padLeft(2, '0');
-    final hh = dt.hour.toString().padLeft(2, '0');
-    final mm = dt.minute.toString().padLeft(2, '0');
-    return '$y-$m-$d $hh:$mm';
   }
 }
